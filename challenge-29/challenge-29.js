@@ -1,6 +1,5 @@
-(function() {
+(function($) {
   'use strict';
-
   /*
   Vamos estruturar um pequeno app utilizando módulos.
   Nosso APP vai ser um cadastro de carros. Vamos fazê-lo por partes.
@@ -36,4 +35,84 @@
   que será nomeado de "app".
   */
 
-})();
+  function app() {
+    return {
+      init: function init() {
+        this.companyInfo();
+        this.initEvents();
+      },
+
+      companyInfo: function companyInfo() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'company.json', true);
+        xhr.send();
+        xhr.addEventListener('readystatechange', this.getCompanyInfo, false);
+      },
+
+      getCompanyInfo: function getCompanyInfo() {
+        if ( !app().isReady.call(this) ) { return; }
+
+        var data = JSON.parse(this.responseText);
+        var $companyName = $('[data-js="company-name"]').get();
+        var $companyPhone = $('[data-js="company-phone"]').get();
+        $companyName.textContent = data.name;
+        $companyPhone.textContent = data.phone;
+      },
+
+      isReady: function isReady() {
+        return this.readyState === 4 && this.status === 200;
+      },
+
+      initEvents: function initEvents() {
+        $('[data-js="form"]').on('submit', this.handleSubmit);
+      },
+
+      handleSubmit: function handleSubmit(e) {
+        e.preventDefault();
+        var $tableCar = $('[data-js="table-car"]').get();
+        $tableCar.appendChild(app().createNewCar());
+      },
+
+      createNewCar: function createNewCar() {
+        var $fragment = document.createDocumentFragment();
+        var $tr = document.createElement('tr');
+        var $tdImage = document.createElement('td');
+        var $imageURL = document.createElement('img');
+        var $tdBrand = document.createElement('td');
+        var $tdYear = document.createElement('td');
+        var $tdPlate = document.createElement('td');
+        var $tdColor = document.createElement('td');
+
+        $imageURL.setAttribute('src', $('[data-js="img"]').get().value);
+        $tdImage.appendChild($imageURL);
+        $tdBrand.textContent = $('[data-js="brand-model"]').get().value;
+        $tdYear.textContent = $('[data-js="year"]').get().value;
+        $tdPlate.textContent = $('[data-js="plate"]').get().value;
+        $tdColor.textContent = $('[data-js="color"]').get().value;
+
+        $tr.appendChild($tdImage);
+        $tr.appendChild($tdBrand);
+        $tr.appendChild($tdYear);
+        $tr.appendChild($tdPlate);
+        $tr.appendChild($tdColor);
+
+        app().clearFieldsAndSetFocus();
+        return $fragment.appendChild($tr);
+      },
+
+      clearFieldsAndSetFocus: function clearFieldsAndSetFocus() {
+        $('[data-js="img"]').get().value = '';
+        $('[data-js="brand-model"]').get().value = '';
+        $('[data-js="year"]').get().value = '';
+        $('[data-js="plate"]').get().value = '';
+        $('[data-js="color"]').get().value = '';
+
+        $('[data-js="img"]').get().focus();
+      },
+
+    }
+  }
+
+  app().init();
+
+})(window.DOM);
